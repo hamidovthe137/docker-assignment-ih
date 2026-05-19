@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+
+  postgres-elman:
+    image: postgres:15
+    container_name: postgres-elman
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-elman:/var/lib/postgresql/data
+    networks:
+      - app-network-elman
+
+  backend-elman:
+    build: ./backend
+    container_name: backend-elman
+    restart: always
+    environment:
+      DB_HOST: postgres-elman
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      DB_NAME: appdb
+      DB_PORT: 5432
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres-elman
+    networks:
+      - app-network-elman
+
+  frontend-elman:
+    build: ./frontend
+    container_name: frontend-elman
+    restart: always
+    environment:
+      REACT_APP_API_URL: http://backend-elman:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-elman
+    networks:
+      - app-network-elman
+
+volumes:
+  pgdata-elman:
+
+networks:
+  app-network-elman:
