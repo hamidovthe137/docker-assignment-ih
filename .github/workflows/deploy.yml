@@ -1,0 +1,35 @@
+name: Deploy 3-tier app - elman
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: Deploy to VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'EOF'
+
+            cd ~/app-elman/docker-assignment-ih || exit
+
+            git pull origin main
+
+            docker-compose down
+
+            docker-compose up -d --build
+
+            docker ps
+
+          EOF
